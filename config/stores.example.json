@@ -1,0 +1,16 @@
+{
+  "_comment": "复制本文件为 stores.local.json 并填入你自己的 storeId。stores.local.json 已被 .gitignore 排除。",
+  "_storeId_在哪里找": "紫鸟客户端 → 店铺管理 → 店铺详情里的一串数字 ID；或 ziniao-cli store list 输出里的 storeId 字段。",
+  "stores": {
+    "4店": "00000000000000",
+    "10店": "00000000000000"
+  },
+  "promos_url": "https://vendedores.mercadolivre.com.br/anuncios/lista/promos",
+  "runtime": {
+    "page_wait_seconds": 12,
+    "expand_poll_times": 8,
+    "expand_poll_interval_seconds": 4,
+    "modal_wait_seconds": 7,
+    "snackbar_wait_seconds": 6
+  }
+}

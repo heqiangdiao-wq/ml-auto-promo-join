@@ -1,0 +1,21 @@
+# 本地店铺配置（含真实 storeId，绝不入库）
+config/stores.local.json
+
+# 运行产物
+tmp/
+logs/
+*.log
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 构建中间态
+.build_src/
+_stages/
+_push_*.log
