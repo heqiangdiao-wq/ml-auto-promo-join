@@ -1,0 +1,9 @@
+# 本项目零第三方运行时依赖，仅使用 Python 3.12+ 标准库。
+#
+# 唯一的外部依赖是紫鸟 CLI（不是 pip 包）：
+#   npm install -g @ziniao-open/cli
+#
+# 明细说明见 docs/03_Environment.md
+#
+# 之所以连 requests 都不需要：所有网络操作都由 CDP 在真实浏览器里完成，
+# Python 侧只负责 subprocess 调用与 JSON 处理。
