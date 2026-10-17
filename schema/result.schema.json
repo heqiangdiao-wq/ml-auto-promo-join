@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ml-auto-promo-join/schema/result.schema.json",
+  "title": "自动报活动运行结果",
+  "description": "每次运行写入 tmp/auto_join_promos.json。每轮**覆盖**，所以跑前必须备份。",
+  "type": "object",
+  "required": ["ts", "dry", "results"],
+  "properties": {
+    "ts": {
+      "type": "string",
+      "description": "本轮写入时间，格式 YYYY-MM-DD HH:MM:SS。备份文件名用它，所以必须是「本轮」的时间而不是运行开始时间。"
+    },
+    "dry": {
+      "type": "boolean",
+      "description": "是否空跑。⚠️ 空跑同样会覆盖结果文件，绝不要用 --dry 做复核。"
+    },
+    "stores": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "本轮跑的店铺别名列表。"
+    },
+    "elapsed_seconds": {
+      "type": "number",
+      "description": "总耗时（秒）。全量两店正常范围 1200~2100。"
+    },
+    "summary": {
+      "type": "object",
+      "description": "按店铺汇总。key = 店铺别名。",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "可参加/参加": { "type": "integer" },
+          "跳过": { "type": "integer" },
+          "异常": { "type": "integer" },
+          "成功": { "type": "integer" },
+          "失败": { "type": "integer" },
+          "待核验": { "type": "integer" },
+          "净收不达标取消": { "type": "integer" },
+          "跳过原因Top": { "type": "object" }
+        }
+      }
+    },
+    "results": {
+      "type": "array",
+      "description": "扁平记录列表。跳过 / 可参加 / 参加 / 异常 四种 type 混排。",
+      "items": {
+        "type": "object",
+        "required": ["store", "type"],
+        "properties": {
+          "store": {
+            "type": "string",
+            "description": "店铺别名，与 config 里的 key 一致。"
+          },
+          "type": {
+            "enum": ["跳过", "可参加", "参加", "异常"],
+            "description": "可参加 = dry 模式下的候选；参加 = 真实执行过的动作；异常 = 页面级故障（掉登录、展开失败）。"
+          },
+          "ident": {
+            "type": ["string", "null"],
+            "description": "标识。优先 SKU；无 SKU 时为 `MLB#<id> <标题>`；组级异常时为 `组「<标题>」`。"
+          },
+          "sku": {
+            "type": ["string", "null"],
+            "description": "页面解析出的 SKU，或从 MLB→SKU 映射补到的值。可能为空。"
+          },
+          "mlb": {
+            "type": ["string", "null"],
+            "description": "MLB 编号（不带 MLB 前缀，纯数字串）。"
+          },
+          "kind": {
+            "enum": ["join", "opt"],
+            "description": "join = 立即参与；opt = 优化折扣。"
+          },
+          "net": {
+            "type": ["number", "null"],
+            "description": "该提案的净收款额（巴西雷亚尔）。opt 在确认后会替换成弹窗读数。"
+          },
+          "base": {
+            "type": ["number", "null"],
+            "description": "基准 = min(激活 ∪ 已预约 的净收)。"
+          },
+          "base_pool": {
+            "type": "array",
+            "description": "基准池明细，形如 [[\"激活\", 110.64], [\"已预约\", 95.0]]。用于复盘为什么这个基准。",
+            "items": {
+              "type": "array",
+              "items": { "type": ["string", "number", "null"] }
+            }
+          },
+          "camp": {
+            "type": ["string", "null"],
+            "description": "活动卡片文本前 80 字（去重键的一部分，截断长度不可改）。"
+          },
+          "reason": {
+            "type": ["string", "null"],
+            "description": "跳过或异常的原因。跳过原因取值见 docs/08_Result_Schema.md。"
+          },
+          "gi": { "type": "integer", "description": "组索引。" },
+          "ri": { "type": "integer", "description": "行索引。" },
+          "bi": { "type": "integer", "description": "卡片索引。可能被扫描兜底改写。" },
+          "bi_orig": { "type": "integer", "description": "扫描兜底前的原始 bi，出现说明发生过索引失效。" },
+          "btn": { "type": "string", "description": "实际点击的按钮文案。" },
+          "btn_locate": {
+            "enum": ["scan_sig", "scan_first"],
+            "description": "扫描兜底的命中方式。scan_first 表示签名没对上、按第一个可点按钮处理（有风险，需留意）。"
+          },
+          "result": {
+            "enum": ["成功", "失败", "待核验", "跳过"],
+            "description": "执行结果。跳过 = 进了队列但在弹窗复核时被取消。"
+          },
+          "detail": {
+            "type": "string",
+            "description": "结果说明。失败/跳过的具体原因都在这里。"
+          },
+          "snackbar": {
+            "type": ["string", "null"],
+            "description": "平台回执原文。成败判据的唯一来源。"
+          },
+          "qty": {
+            "type": ["string", "number", "null"],
+            "description": "限时抢购填的数量。"
+          },
+          "qty_default": {
+            "type": "boolean",
+            "description": "true 表示读不到仓库数量、保持了平台默认值。"
+          },
+          "net_src": {
+            "enum": ["structured_pair", "structured_single", "modal_pair", "modal_single", "flat_fallback", "none"],
+            "description": "净收读数的来源路径。flat_fallback 出现说明结构化读取失败，该条数据可信度低。"
+          },
+          "net_cells": {
+            "type": ["array", "null"],
+            "description": "弹窗原始单元格文本。排障时看这个能判断读数对不对。",
+            "items": { "type": "string" }
+          },
+          "cur_net": { "type": ["number", "null"], "description": "弹窗里的当前档净收。" },
+          "new_net": { "type": ["number", "null"], "description": "弹窗里的新提案净收。" }
+        }
+      }
+    }
+  }
+}
